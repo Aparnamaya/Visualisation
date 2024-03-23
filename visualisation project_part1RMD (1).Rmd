@@ -1,0 +1,156 @@
+---
+title: "Visualisation Project_part 1"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+date: "`r Sys.Date()`"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+```{r,echo=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(readr)
+Data <- read.csv("survey lung cancer.csv")
+```
+
+## Introduction
+Lung cancer is a fatal disease that begins in the cells of the lungs. Lung cancer often identified in a later stage which makes it incurable then. But an analysis of possible causes and observable symptoms makes people less vulnerable to the risks of lung cancer. In this project I am visualising the data of various possible reasons and early symptoms of lung cancer with its relationship with the occurence of lung cancer.
+  
+## Data Description
+
+The original data had 16 columns describing symptoms and possible causes and 309 rows. But it had some duplicates among rows. So by using 
+```{r}
+Data<-distinct(Data)
+```
+we get 276 rows.
+```{r}
+Data[Data==1]<-0
+Data[Data==2]<-1
+Data$LUNG_CANCER <- gsub("YES", 1, Data$LUNG_CANCER)
+Data$LUNG_CANCER <- gsub("NO", 0, Data$LUNG_CANCER)
+Data$LUNG_CANCER <- as.numeric(as.character(Data$LUNG_CANCER))
+
+glimpse(Data)
+```
+## Exploratory Data Analysis
+
+### Interpretations on Possible Reasons for Lung cancer
+
+### a)Smoking
+
+#### smokers and non-smokers among people with lung cancer
+
+```{r,echo=FALSE,fig.align="center", fig.margin=TRUE,fig.height=5, fig.width=9}
+Data1 <- Data %>% 
+  filter(LUNG_CANCER %in% 1)
+frequency_table <- table(Data1[, "SMOKING"])
+
+pie(frequency_table, col = rainbow(length(frequency_table)))
+legend("topright", legend = c("People who doesn't smoke","People who smoke"), fill = rainbow(length(frequency_table)))
+```
+#### People with lung cancer among smokers
+```{r,echo=FALSE,fig.align="center", fig.margin=TRUE,fig.height=5, fig.width=9}
+Data1 <- Data %>% 
+  filter(SMOKING %in% 1)
+frequency_table <- table(Data1[, "LUNG_CANCER"])
+
+pie(frequency_table, col = rainbow(length(frequency_table)))
+legend("topright", legend = c("People without lung cancer","People with lung cancer"), fill = rainbow(length(frequency_table)))
+```
+### b)Alcohol consumption
+#### Alcoholic and non alcoholic among people with lung cancer
+```{r,echo=FALSE,fig.align="center", fig.margin=TRUE,fig.height=5, fig.width=9}
+Data1 <- Data %>% 
+  filter(LUNG_CANCER %in% 1)
+frequency_table <- table(Data1[, "ALCOHOL.CONSUMING"])
+
+pie(frequency_table, col = rainbow(length(frequency_table)))
+legend("topright", legend = c("People who doesn't consume alcohol","People who consume alcohol"), fill = rainbow(length(frequency_table)))
+```
+#### People with and without lung cancer among alcoholics
+```{r,echo=FALSE,fig.align="center", fig.margin=TRUE,fig.height=5, fig.width=9}
+Data1 <- Data %>% 
+  filter(ALCOHOL.CONSUMING %in% 1)
+frequency_table <- table(Data1[, "LUNG_CANCER"])
+
+pie(frequency_table, col = rainbow(length(frequency_table)))
+legend("topright", legend = c("People without lung cancer","People with lung cancer"), fill = rainbow(length(frequency_table)))
+```
+#### People with and without lung cancer among people who drink and smoke
+```{r,echo=FALSE,fig.align="center", fig.margin=TRUE,fig.height=5, fig.width=9}
+df1=Data %>% filter(ALCOHOL.CONSUMING %in% 1)
+df=df1 %>% filter(SMOKING %in% 1)
+frequency_table <- table(df[, "LUNG_CANCER"])
+
+pie(frequency_table, col = rainbow(length(frequency_table)))
+legend("topright", legend = c("People without lung cancer","People with lung cancer"), fill = rainbow(length(frequency_table)))
+```
+
+
+### Various symptoms and its relationship with lung cancer
+#### a)Presence of yellow fingers among people with lung cancer
+```{r,echo=FALSE,fig.align="center", fig.margin=TRUE,fig.height=4, fig.width=2.8}
+DataSub <- Data %>% 
+  filter(LUNG_CANCER %in% 1)
+DataSub[DataSub==1]<-"yellow fingers"
+DataSub[DataSub==0]<-"No yellow fingers"
+ggplot(data=DataSub, aes(x=YELLOW_FINGERS))+geom_bar(fill="darkblue",color="white")+xlab("Yellow fingers")+ylab("Frequency")
+```
+
+#### b)Presence of Anxiety among people with lung cancer
+```{r,echo=FALSE,fig.align="center", fig.margin=TRUE,fig.height=4, fig.width=2.8}
+DataSub <- Data %>% 
+  filter(LUNG_CANCER %in% 1)
+DataSub[DataSub==1]<-"Anxiety"
+DataSub[DataSub==0]<-"No anxiety"
+ggplot(data=DataSub, aes(x=ANXIETY))+geom_bar(fill="darkblue",color="white")+xlab("Anxiety")+ylab("Frequency")
+```
+#### c)Presence of coughing among people with lung cancer
+```{r,echo=FALSE,fig.align="center", fig.margin=TRUE,fig.height=4, fig.width=2.8}
+DataSub <- Data %>% 
+  filter(LUNG_CANCER %in% 1)
+DataSub[DataSub==1]<-"Coughing"
+DataSub[DataSub==0]<-"No coughing"
+ggplot(data=DataSub, aes(x=COUGHING))+geom_bar(fill="darkblue",color="white")+xlab("Coughing")+ylab("Frequency")
+```
+#### c)Presence of chest painamong people with lung cancer
+```{r,echo=FALSE,fig.align="center", fig.margin=TRUE,fig.height=4, fig.width=2.8}
+DataSub <- Data %>% 
+  filter(LUNG_CANCER %in% 1)
+DataSub[DataSub==1]<-"Chest pain"
+DataSub[DataSub==0]<-"No chest pain"
+ggplot(data=DataSub, aes(x=CHEST.PAIN))+geom_bar(fill="darkblue",color="white")+xlab("Chest pain")+ylab("Frequency")
+```
+
+###Distribution of lung cancer among various age groups
+
+```{r,echo=FALSE}
+Filtered_data<-Data %>% filter (LUNG_CANCER %in% 1)
+ggplot(data=Filtered_data,aes(x=AGE))+geom_density()
+```
+
+```{r,echo=FALSE}
+library(corrplot)
+Corr <- cor(select_if(Data, is.numeric), use="complete.obs")
+corrplot(Corr,method = "color",col = colorRampPalette(c("darkblue","lightblue","white"))(100),number.cex = 0.25,addCoef.col = 1,tl.cex = 0.4)
+```
+  
+## Results
+*From the analysis of data it is evident that smoking and alcohol consumption has impact on the occurence of lung cancer. Alcohol consumption has a high correlation 0.29 with lung cancer.
+
+*Among the people who both consume alcohol and smoke, the frequency of lung cancer is very high
+
+*Presence of allergy, wheezing, coughing, swallowing difficulty has high correlation with lung cancer. Hence those can be used for the prediction of lung cancer.
+
+*From the data the most vulnerable population to lung cancer is the age group around 60.
+
+## Conclusion
+From the data and its analysis we could conclude that it is definitely possible to minimise the occurence of lung cancer by limiting the consumption of alcohol and tobacco. Also we can conclude that, upto some extent it is possible to predict lung cancer with early symptoms.
+
+
